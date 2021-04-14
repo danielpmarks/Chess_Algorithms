@@ -101,7 +101,9 @@ def minimax(side, board, flags, depth):
 
         newMoveList = [decode(best_move), *moveLists[best_move]]
 
-    return moves[best_move], newMoveList, {best_move: moveTrees}
+    print(moves)
+    print(moveTrees)
+    return moves[best_move], newMoveList, moveTrees
 
 
 def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
