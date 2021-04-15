@@ -128,6 +128,7 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
     moveLists = {}
 
     if side:
+        value = math.inf
         # Go through all possible moves
         for move in generateMoves(side, board, flags):
 
@@ -138,14 +139,16 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
             score, moveList, moveTree = alphabeta(
                 newside, newboard, newflags, depth - 1)
 
-            beta = score if score < beta else beta
-            if(beta < alpha):
+            value = value if value < score else score
+            alpha = alpha if alpha < value else value
+            if(beta <= alpha):
                 return score, moveList.insert(0, move), moveTrees
             moves[encode(*move)] = score
             moveTrees[encode(*move)] = moveTree
             moveLists[encode(*move)] = moveList
     else:
-       # Go through all possible moves
+        value = -math.inf
+        # Go through all possible moves
         for move in generateMoves(side, board, flags):
 
             newside, newboard, newflags = makeMove(
@@ -154,9 +157,9 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
             # Fan out next level of tree
             score, moveList, moveTree = alphabeta(
                 newside, newboard, newflags, depth - 1)
-
-            alpha = score if score > alpha else alpha
-            if(alpha > beta):
+            value = value if value > score else score
+            alpha = alpha if alpha > value else value
+            if(alpha >= beta):
                 return score, moveList.insert(0, move), moveTrees
 
             moves[encode(*move)] = score
@@ -178,7 +181,7 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
         newMoveList = [decode(best_move), *moveLists[best_move]]
 
     # print(moves)
-    print(moveTrees)
+    print("Move tree", moveTrees)
     return moves[best_move], newMoveList, moveTrees
 
 
