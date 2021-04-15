@@ -137,15 +137,18 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
 
             # Fan out next level of tree
             score, moveList, moveTree = alphabeta(
-                newside, newboard, newflags, depth - 1)
+                newside, newboard, newflags, depth - 1, alpha, beta)
 
-            value = value if value < score else score
-            alpha = alpha if alpha < value else value
-            if(beta <= alpha):
-                return score, moveList.insert(0, move), moveTrees
             moves[encode(*move)] = score
             moveTrees[encode(*move)] = moveTree
             moveLists[encode(*move)] = moveList
+
+            value = value if value < score else score
+            beta = beta if beta < value else value
+
+            if(beta <= alpha):
+                return score, [], moveTrees
+
     else:
         value = -math.inf
         # Go through all possible moves
@@ -156,15 +159,16 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
 
             # Fan out next level of tree
             score, moveList, moveTree = alphabeta(
-                newside, newboard, newflags, depth - 1)
-            value = value if value > score else score
-            alpha = alpha if alpha > value else value
-            if(alpha >= beta):
-                return score, moveList.insert(0, move), moveTrees
+                newside, newboard, newflags, depth - 1, alpha, beta)
 
             moves[encode(*move)] = score
             moveTrees[encode(*move)] = moveTree
             moveLists[encode(*move)] = moveList
+
+            value = value if value > score else score
+            alpha = alpha if alpha > value else value
+            if(alpha >= beta):
+                return score, [], moveTrees
 
     # Choose move based on side optimization
     if len(moves) > 0:
@@ -181,7 +185,7 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
         newMoveList = [decode(best_move), *moveLists[best_move]]
 
     # print(moves)
-    #print("Move tree", moveTrees)
+    # print("Move tree", moveTrees)
     return moves[best_move], newMoveList, moveTrees
 
 
