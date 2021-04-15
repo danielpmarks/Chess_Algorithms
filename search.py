@@ -181,7 +181,7 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
         newMoveList = [decode(best_move), *moveLists[best_move]]
 
     # print(moves)
-    print("Move tree", moveTrees)
+    #print("Move tree", moveTrees)
     return moves[best_move], newMoveList, moveTrees
 
 
