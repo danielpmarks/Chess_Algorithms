@@ -101,8 +101,8 @@ def minimax(side, board, flags, depth):
 
         newMoveList = [decode(best_move), *moveLists[best_move]]
 
-    print(moves)
-    print(moveTrees)
+    # print(moves)
+    # print(moveTrees)
     return moves[best_move], newMoveList, moveTrees
 
 
@@ -119,7 +119,67 @@ def alphabeta(side, board, flags, depth, alpha=-math.inf, beta=math.inf):
       flags (list of flags): list of flags, used by generateMoves and makeMove
       depth (int >=0): depth of the search (number of moves)
     '''
-    raise NotImplementedError("you need to write this!")
+    # Base case
+    if depth == 0:
+        return evaluate(board), [], {}
+
+    moves = {}
+    moveTrees = {}
+    moveLists = {}
+
+    if side:
+        # Go through all possible moves
+        for move in generateMoves(side, board, flags):
+
+            newside, newboard, newflags = makeMove(
+                side, board, move[0], move[1], flags, move[2])
+
+            # Fan out next level of tree
+            score, moveList, moveTree = alphabeta(
+                newside, newboard, newflags, depth - 1)
+
+            beta = score if score < beta else beta
+            if(beta < alpha):
+                return score, moveList.insert(0, move), moveTrees
+            moves[encode(*move)] = score
+            moveTrees[encode(*move)] = moveTree
+            moveLists[encode(*move)] = moveList
+    else:
+       # Go through all possible moves
+        for move in generateMoves(side, board, flags):
+
+            newside, newboard, newflags = makeMove(
+                side, board, move[0], move[1], flags, move[2])
+
+            # Fan out next level of tree
+            score, moveList, moveTree = alphabeta(
+                newside, newboard, newflags, depth - 1)
+
+            alpha = score if score > alpha else alpha
+            if(alpha > beta):
+                return score, moveList.insert(0, move), moveTrees
+
+            moves[encode(*move)] = score
+            moveTrees[encode(*move)] = moveTree
+            moveLists[encode(*move)] = moveList
+
+    # Choose move based on side optimization
+    if len(moves) > 0:
+        if side:
+            best_move = min(moves, key=moves.get)
+        else:
+            best_move = max(moves, key=moves.get)
+    else:
+        return evaluate(board), [], {}
+
+    newMoveList = []
+    if moveLists[best_move] != None and len(moveLists[best_move]) >= 0:
+
+        newMoveList = [decode(best_move), *moveLists[best_move]]
+
+    # print(moves)
+    print(moveTrees)
+    return moves[best_move], newMoveList, moveTrees
 
 
 def stochastic(side, board, flags, depth, breadth, chooser):
