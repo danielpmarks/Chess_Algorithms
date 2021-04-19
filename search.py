@@ -201,7 +201,96 @@ def stochastic(side, board, flags, depth, breadth, chooser):
       board (2-tuple of lists): current board layout, used by generateMoves and makeMove
       flags (list of flags): list of flags, used by generateMoves and makeMove
       depth (int >=0): depth of the search (number of moves)
-      breadth: number of different paths 
+      breadth: number of different paths
       chooser: a function similar to random.choice, but during autograding, might not be random.
     '''
-    raise NotImplementedError("you need to write this!")
+    def findPath(side, board, flags, depth, chooser):
+        # print(depth)
+        if depth == 0:
+            return evaluate(board), [], {}
+        else:
+            moves = []
+            for move in generateMoves(side, board, flags):
+                moves.append(move)
+
+            if len(moves) == 0:
+                return evaluate(board), [], {}
+
+            chosen_move = chooser(moves)
+
+            newside, newboard, newflags = makeMove(
+                side, board, chosen_move[0], chosen_move[1], flags, chosen_move[2])
+
+            score, path, tree = findPath(
+                newside, newboard, newflags, depth-1, chooser)
+            # print(path, [chosen_move, *path])
+            return score, [chosen_move, *path], {encode(*chosen_move): tree}
+
+    potential_moves = {}
+
+    # Iteratively looping through all depth level moves
+    for move in generateMoves(side, board, flags):
+        # print(move)
+        # Make move
+        newside, newboard, newflags = makeMove(
+            side, board, move[0], move[1], flags, move[2])
+
+        moves = []
+        for child_move in generateMoves(newside, newboard, newflags):
+            moves.append(child_move)
+
+        if len(moves) > 0:
+            score = 0
+            # Investigate breadth moves and keep track of the best one
+            total_score = 0
+            best_move = None
+            best_score = best_score = math.inf if side else -math.inf
+            best_move_list = None
+            best_move_tree = None
+            count = 0
+            for i in range(breadth if len(moves) >= breadth else len(moves)):
+
+                chosen_move = chooser(moves)
+                # print("Grandchildren: ", chosen_move)
+                nextMoveSide, nextMoveBoard, nextMoveFlags = makeMove(
+                    side, board, chosen_move[0], chosen_move[1], flags, chosen_move[2])
+                score, moveList, moveTree = findPath(
+                    nextMoveSide, nextMoveBoard, nextMoveFlags, depth, chooser)
+
+                if (side and score <= best_score) or (not(side) and score >= best_score):
+                    best_score = score
+                    best_move = chosen_move
+                    best_move_list = moveList
+                    best_move_tree = moveTree
+                    # print(moveList, best_score, score)
+                total_score += score
+                count += 1
+            # print(best_move_list, best_move)
+            # Calculate the average score
+            avg_score = total_score / count
+            potential_moves[encode(*move)] = (avg_score, [best_move,
+                                                          *best_move_list], {encode(*best_move): best_move_tree})
+
+        else:
+            potential_moves[encode(
+                *move)] = (evaluate(newboard), [], {})
+
+    if(len(potential_moves) > 0):
+        best_move = None
+        best_move_list = None
+        best_move_tree = None
+        best_score = math.inf if side else -math.inf
+        for move in potential_moves:
+            # print(move, potential_moves[move])
+            if (side and potential_moves[move][0] <= best_score) or (not(side) and potential_moves[move][0] >= best_score):
+                # print(move, potential_moves[move])
+                best_score = potential_moves[move][0]
+                best_move_list = potential_moves[move][1]
+                best_move_tree = potential_moves[move][2]
+                best_move = move
+        # print([decode(best_move), *best_move_list], {best_move: best_move_tree})
+        # print(best_score, [decode(best_move), *
+                           best_move_list], {best_move: best_move_tree})
+        return best_score, [decode(best_move), *best_move_list], {best_move: best_move_tree}
+    else:
+        return evaluate(board, [], {})
