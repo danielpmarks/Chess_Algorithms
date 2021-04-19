@@ -289,8 +289,7 @@ def stochastic(side, board, flags, depth, breadth, chooser):
                 best_move_tree = potential_moves[move][2]
                 best_move = move
         # print([decode(best_move), *best_move_list], {best_move: best_move_tree})
-        # print(best_score, [decode(best_move), *
-                           best_move_list], {best_move: best_move_tree})
+        # print(best_score, [decode(best_move), *best_move_list], {best_move: best_move_tree})
         return best_score, [decode(best_move), *best_move_list], {best_move: best_move_tree}
     else:
         return evaluate(board, [], {})
